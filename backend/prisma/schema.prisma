@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  PASSENGER
+  DRIVER
+}
+
+enum RideStatus {
+  REQUESTED
+  MATCHED
+  DRIVER_ARRIVED
+  STARTED
+  COMPLETED
+  CANCELLED
+}
+
+enum PoolStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  TeslaPay
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+model User {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  passwordHash String
+  role         UserRole
+  vehicle      Vehicle?
+  rideRequests RideRequest[]
+  rideHistory  RideStatusHistory[] @relation("ChangedBy")
+  payments     Payment[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Vehicle {
+  id        String   @id @default(cuid())
+  driverId  String   @unique
+  name      String
+  capacity  Int      @default(3)
+  isOnline  Boolean  @default(false)
+  driver    User     @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  pools     Pool[]
+  createdAt DateTime @default(now())
+}
+
+model Area {
+  id          String        @id @default(cuid())
+  name        String        @unique
+  latitude    Float
+  longitude   Float
+  pickups     RideRequest[] @relation("PickupArea")
+  dropoffs    RideRequest[] @relation("DropoffArea")
+}
+
+model RideRequest {
+  id             String        @id @default(cuid())
+  passengerId    String
+  pickupAreaId   String
+  dropoffAreaId  String
+  requestedSeats Int           @default(1)
+  status         RideStatus    @default(REQUESTED)
+  estimatedFare  Int
+  finalFare      Int?
+  passenger      User          @relation(fields: [passengerId], references: [id])
+  pickupArea     Area          @relation("PickupArea", fields: [pickupAreaId], references: [id])
+  dropoffArea    Area          @relation("DropoffArea", fields: [dropoffAreaId], references: [id])
+  membership     PoolMembership?
+  history        RideStatusHistory[]
+  payments       Payment[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  @@index([status, createdAt])
+}
+
+model Pool {
+  id        String           @id @default(cuid())
+  vehicleId String
+  status    PoolStatus       @default(OPEN)
+  vehicle   Vehicle          @relation(fields: [vehicleId], references: [id])
+  members   PoolMembership[]
+  createdAt DateTime         @default(now())
+}
+
+model PoolMembership {
+  id        String      @id @default(cuid())
+  poolId    String
+  rideId    String      @unique
+  seats     Int
+  farePaisa Int
+  joinedAt  DateTime    @default(now())
+  pool      Pool        @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  ride      RideRequest @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  @@index([poolId])
+}
+
+model RideStatusHistory {
+  id        String     @id @default(cuid())
+  rideId    String
+  fromStatus RideStatus?
+  toStatus  RideStatus
+  changedBy String
+  ride      RideRequest @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  actor     User        @relation("ChangedBy", fields: [changedBy], references: [id])
+  changedAt DateTime    @default(now())
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  rideId      String
+  passengerId String
+  amountPaisa Int
+  method      PaymentMethod @default(TeslaPay)
+  status      PaymentStatus @default(PENDING)
+  ride        RideRequest   @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  passenger   User          @relation(fields: [passengerId], references: [id])
+  createdAt   DateTime      @default(now())
+  @@index([passengerId, createdAt])
+}
