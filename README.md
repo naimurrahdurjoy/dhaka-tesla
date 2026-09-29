@@ -122,16 +122,30 @@ Run backend integration tests with PostgreSQL available and `DATABASE_URL` set: 
 
 The API accepts browser requests from `http://localhost:3000`, HTTPS `*.vercel.app` deployments, and exact origins configured in `FRONTEND_URL` (comma-separated origins are supported). Credentialed requests are enabled. Configure `FRONTEND_URL` on the backend deployment, for example `https://your-app.vercel.app`; do not use `*` with credentials.
 
-To seed a Render PostgreSQL database from PowerShell, use Render's **External Database URL** from a trusted terminal. In production, set a strong `SEED_PASSWORD`; the seed script refuses to create or reset the four actor accounts with a known development password. Run from the repository root:
+Before seeding, synchronize the Render database with the current Prisma schema. This MVP adds `User.balancePaisa` with a database default of `0`; an older database must receive that column before the generated Prisma Client can query users. `db push` below does not reset the database and deliberately omits `--accept-data-loss`. Review Prisma's proposed changes and stop if it reports destructive changes. For a mature production workflow, replace schema push with reviewed Prisma migrations.
+
+Use Render's **External Database URL** from a trusted terminal. In production, set a strong `SEED_PASSWORD`; the seed script refuses to create or reset the four actor accounts with a known development password. Run from the repository root. The secure prompts keep the URL and seed password out of PowerShell command history, and the `finally` block clears them afterward:
 
 ```powershell
 Set-Location .\backend
-$env:DATABASE_URL = Read-Host 'Paste Render External Database URL'
+$databaseUrl = Read-Host 'Render External Database URL' -AsSecureString
+$seedPassword = Read-Host 'Password for seeded accounts' -AsSecureString
+$env:DATABASE_URL = [System.Net.NetworkCredential]::new('', $databaseUrl).Password
 $env:NODE_ENV = 'production'
-$env:SEED_PASSWORD = Read-Host 'Enter the password for seeded accounts'
-npx prisma generate
-npx prisma db seed
-Remove-Item Env:DATABASE_URL, Env:NODE_ENV, Env:SEED_PASSWORD
+$env:SEED_PASSWORD = [System.Net.NetworkCredential]::new('', $seedPassword).Password
+try {
+  npx prisma generate
+  if ($LASTEXITCODE -ne 0) { throw 'Prisma Client generation failed.' }
+
+  npx prisma db push
+  if ($LASTEXITCODE -ne 0) { throw 'Prisma schema synchronization failed.' }
+
+  npx prisma db seed
+  if ($LASTEXITCODE -ne 0) { throw 'Database seeding failed.' }
+}
+finally {
+  Remove-Item Env:DATABASE_URL, Env:NODE_ENV, Env:SEED_PASSWORD -ErrorAction SilentlyContinue
+}
 ```
 
 The seed command is idempotent for its actors, vehicle, areas, and sample rides. Treat seeded production actor accounts as operational accounts: distribute their password securely and rotate it after the initial seed if needed.
