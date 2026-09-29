@@ -1,37 +1,216 @@
-'use client';
+"use client";
 
-import { FormEvent, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api';
-
-type Actor = { label: string; name: string; email: string; role: 'DRIVER' | 'PASSENGER'; emoji: string };
-const actors: Actor[] = [
-  { label: 'Jashim', name: 'Jashim', email: 'driver@teslapool.demo', role: 'DRIVER', emoji: '⚡' },
-  { label: 'Nusrat', name: 'Nusrat', email: 'passenger1@teslapool.demo', role: 'PASSENGER', emoji: 'N' },
-  { label: 'Rafiq', name: 'Rafiq', email: 'passenger2@teslapool.demo', role: 'PASSENGER', emoji: 'R' },
-  { label: 'Shirin', name: 'Shirin', email: 'passenger3@teslapool.demo', role: 'PASSENGER', emoji: 'S' }
-];
+import { FormEvent, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [selected, setSelected] = useState(actors[1]);
-  const [email, setEmail] = useState(actors[1].email);
-  const [password, setPassword] = useState('tesla2026');
-  const [error, setError] = useState('');
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState<"PASSENGER" | "DRIVER">("PASSENGER");
+  const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  async function submit(event: FormEvent) {
-    event.preventDefault(); setBusy(true); setError('');
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const signingUp = mode === "signup";
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      setError("Enter a valid email address.");
+      return;
+    }
+    if (signingUp && fullName.trim().length < 2) {
+      setError("Enter your full name.");
+      return;
+    }
+    if (signingUp && password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+    setBusy(true);
+    setError("");
+
     try {
-      const session = await api<{ token: string; user: { id: string; name: string; role: 'DRIVER' | 'PASSENGER'; email: string } }>('/auth/login', undefined, { method: 'POST', body: JSON.stringify({ email, password }) });
-      localStorage.setItem('teslapool-session', JSON.stringify(session));
-      router.push(session.user.role === 'DRIVER' ? '/driver' : '/passenger');
-    } catch (err) { setError(err instanceof Error ? err.message : 'Could not sign in.'); }
-    finally { setBusy(false); }
+      const session = await api<{
+        token: string;
+        user: {
+          id: string;
+          name: string;
+          role: "DRIVER" | "PASSENGER";
+          email: string;
+        };
+      }>(signingUp ? "/api/v1/auth/signup" : "/api/v1/auth/login", undefined, {
+        method: "POST",
+        body: JSON.stringify(signingUp
+          ? { name: fullName.trim(), email: normalizedEmail, password, role }
+          : { email: normalizedEmail, password }),
+      });
+      localStorage.setItem("teslapool-session", JSON.stringify(session));
+      router.push(session.user.role === "DRIVER" ? "/driver" : "/passenger");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not sign in.");
+    } finally {
+      setBusy(false);
+    }
   }
-  function choose(actor: Actor) { setSelected(actor); setEmail(actor.email); setPassword('tesla2026'); setError(''); }
-  return <main className="grid min-h-screen bg-paper lg:grid-cols-[1fr_.88fr]">
-    <section className="relative hidden overflow-hidden bg-forest p-12 text-white lg:flex lg:flex-col lg:justify-between"><Link href="/" className="flex items-center gap-3 font-bold"><span className="grid h-10 w-10 place-items-center rounded-xl bg-mint text-xl text-forest">T</span>TESLAPOOL</Link><div className="relative z-10 max-w-xl pb-12"><p className="mb-5 text-xs font-bold uppercase tracking-[.2em] text-mint">Your seat is waiting</p><h1 className="text-6xl font-semibold leading-[1.03] tracking-[-.05em]">The city feels closer when we ride together.</h1><p className="mt-6 max-w-md leading-7 text-white/65">One little electric Bullet. Three seats. A smarter way to move through Dhaka.</p><div className="mt-10 flex -space-x-3">{actors.slice(1).map((actor, index) => <span key={actor.name} className={`grid h-12 w-12 place-items-center rounded-full border-2 border-forest font-bold text-ink ${['bg-[#f7c8a7]', 'bg-[#b8d8d0]', 'bg-mint'][index]}`}>{actor.emoji}</span>)}<span className="grid h-12 w-12 place-items-center rounded-full border-2 border-forest bg-white/10 text-sm">+you</span></div></div><p className="text-xs text-white/40">Banani, Dhaka · Electric shared rides</p><div className="absolute -bottom-28 -right-24 h-96 w-96 rounded-full border border-white/10"/><div className="absolute -bottom-16 -right-12 h-72 w-72 rounded-full border border-white/10"/></section>
-    <section className="flex items-center justify-center px-5 py-12"><div className="w-full max-w-md"><Link href="/" className="mb-10 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 lg:hidden">← Dhaka Tesla Pool</Link><p className="text-xs font-bold uppercase tracking-[.18em] text-forest">Welcome aboard</p><h2 className="mt-3 text-4xl font-semibold tracking-[-.04em]">Sign in to Tesla Pool</h2><p className="mt-3 text-sm text-slate-500">Choose a demo actor or use your account credentials.</p><div className="mt-8 grid grid-cols-4 gap-2">{actors.map((actor) => <button key={actor.name} onClick={() => choose(actor)} className={`rounded-2xl border p-3 text-center transition ${selected.name === actor.name ? 'border-forest bg-white shadow-sm' : 'border-transparent bg-white/60 hover:bg-white'}`}><span className={`mx-auto grid h-9 w-9 place-items-center rounded-full text-sm font-bold text-ink ${actor.role === 'DRIVER' ? 'bg-mint' : 'bg-[#e8ede6]'}`}>{actor.emoji}</span><span className="mt-2 block text-xs font-semibold">{actor.label}</span></button>)}</div><form onSubmit={submit} className="mt-7 space-y-4"><label className="block text-sm font-semibold">Email address<input autoComplete="email" type="email" required value={email} onChange={(event) => setEmail(event.target.value)} className="mt-2 w-full rounded-2xl border border-ink/10 bg-white px-4 py-3.5 text-sm outline-none focus:border-forest"/></label><label className="block text-sm font-semibold">Password<input autoComplete="current-password" type="password" required value={password} onChange={(event) => setPassword(event.target.value)} className="mt-2 w-full rounded-2xl border border-ink/10 bg-white px-4 py-3.5 text-sm outline-none focus:border-forest"/></label>{error && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}<button disabled={busy} className="w-full rounded-full bg-forest py-4 text-sm font-bold text-white transition hover:bg-ink disabled:opacity-60">{busy ? 'Signing in…' : 'Continue'} <span className="ml-2 text-mint">↗</span></button></form><p className="mt-5 text-center text-xs text-slate-400">Demo password for all actors: <b>tesla2026</b></p></div></section>
-  </main>;
+  return (
+    <main className="grid min-h-screen bg-paper lg:grid-cols-[1fr_.88fr]">
+      <section className="relative flex min-h-[240px] flex-col justify-between overflow-hidden bg-forest px-6 py-7 text-white sm:min-h-[270px] sm:px-10 lg:min-h-screen lg:px-12 lg:py-12">
+        <Link href="/" className="relative z-10 flex items-center gap-3 font-bold">
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-mint text-xl text-forest">
+            T
+          </span>
+          TESLAPOOL
+        </Link>
+        <div className="relative z-10 mt-8 max-w-xl lg:mt-0 lg:pb-12">
+          <p className="mb-4 text-xs font-bold uppercase tracking-[.2em] text-mint">
+            Your seat is waiting
+          </p>
+          <h1 className="text-3xl font-semibold leading-tight tracking-[-.04em] sm:text-4xl lg:text-6xl lg:leading-[1.03]">
+            The city feels closer when we ride together.
+          </h1>
+          <p className="mt-4 max-w-md text-sm leading-6 text-white/65 sm:text-base lg:mt-6 lg:leading-7">
+            One little electric Bullet. Three seats. A smarter way to move
+            through Dhaka.
+          </p>
+          <div className="mt-5 flex items-center gap-3 text-xs font-semibold text-white/75 sm:mt-7">
+            <span className="h-2.5 w-2.5 rounded-full bg-mint" />
+            <span>Banani</span>
+            <span className="text-mint">→</span>
+            <span>Mohakhali · Gulshan 1</span>
+          </div>
+        </div>
+        <p className="relative z-10 mt-7 text-xs text-white/40 lg:mt-0">
+          Banani, Dhaka · Electric shared rides
+        </p>
+        <div className="absolute -bottom-28 -right-24 h-96 w-96 rounded-full border border-white/10" />
+        <div className="absolute -bottom-16 -right-12 h-72 w-72 rounded-full border border-white/10" />
+      </section>
+      <section className="flex min-h-[calc(100vh-240px)] items-center justify-center px-5 py-12 sm:min-h-[calc(100vh-270px)] lg:min-h-screen">
+        <div className="w-full max-w-md">
+          <Link
+            href="/"
+            className="mb-10 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 lg:hidden"
+          >
+            ← Dhaka Tesla Pool
+          </Link>
+          <div className="grid grid-cols-2 rounded-full bg-white p-1" role="tablist" aria-label="Authentication mode">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mode === "signin"}
+              onClick={() => { setMode("signin"); setError(""); }}
+              className={`rounded-full px-4 py-3 text-sm font-semibold transition ${mode === "signin" ? "bg-emerald-900 text-white" : "text-slate-500 hover:text-ink"}`}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mode === "signup"}
+              onClick={() => { setMode("signup"); setError(""); }}
+              className={`rounded-full px-4 py-3 text-sm font-semibold transition ${mode === "signup" ? "bg-emerald-900 text-white" : "text-slate-500 hover:text-ink"}`}
+            >
+              Create Account
+            </button>
+          </div>
+          <h2 className="mt-3 text-4xl font-semibold tracking-[-.04em]">
+            {mode === "signin" ? "Sign in to Tesla Pool" : "Create your account"}
+          </h2>
+          <p className="mt-3 text-sm text-slate-500">
+            {mode === "signin" ? "Enter your account details to continue." : "Join the ride with a secure account."}
+          </p>
+          <form onSubmit={submit} className="mt-7 space-y-4">
+            {mode === "signup" && (
+              <>
+                <label className="block text-sm font-semibold">
+                  Full Name
+                  <input
+                    autoComplete="name"
+                    className="mt-2 w-full rounded-2xl border border-ink/10 bg-white px-4 py-3.5 text-sm outline-none transition focus:border-forest focus:ring-2 focus:ring-emerald-700/20"
+                    onChange={(event) => setFullName(event.target.value)}
+                    placeholder="Your full name"
+                    required
+                    minLength={2}
+                    value={fullName}
+                  />
+                </label>
+                <label className="block text-sm font-semibold">
+                  Role
+                  <select
+                    className="mt-2 w-full rounded-2xl border border-ink/10 bg-white px-4 py-3.5 text-sm outline-none transition focus:border-forest focus:ring-2 focus:ring-emerald-700/20"
+                    onChange={(event) => setRole(event.target.value as "PASSENGER" | "DRIVER")}
+                    value={role}
+                  >
+                    <option value="PASSENGER">Passenger</option>
+                    <option value="DRIVER">Driver</option>
+                  </select>
+                </label>
+              </>
+            )}
+            <label className="block text-sm font-semibold">
+              Email address
+              <input
+                autoComplete="email"
+                type="email"
+                required
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="name@example.com"
+                className="mt-2 w-full rounded-2xl border border-ink/10 bg-white px-4 py-3.5 text-sm outline-none transition focus:border-forest focus:ring-2 focus:ring-emerald-700/20"
+              />
+            </label>
+            <label className="block text-sm font-semibold">
+              {mode === "signin" ? "Password" : "Password"}
+              <input
+                autoComplete="current-password"
+                type="password"
+                required
+                minLength={8}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="••••••••"
+                className="mt-2 w-full rounded-2xl border border-ink/10 bg-white px-4 py-3.5 text-sm outline-none transition focus:border-forest focus:ring-2 focus:ring-emerald-700/20"
+              />
+            </label>
+            {mode === "signup" && (
+              <label className="block text-sm font-semibold">
+                Confirm Password
+                <input
+                  autoComplete="new-password"
+                  className="mt-2 w-full rounded-2xl border border-ink/10 bg-white px-4 py-3.5 text-sm outline-none transition focus:border-forest focus:ring-2 focus:ring-emerald-700/20"
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  placeholder="Re-enter your password"
+                  required
+                  minLength={8}
+                  type="password"
+                  value={confirmPassword}
+                />
+              </label>
+            )}
+            {error && (
+              <p
+                role="alert"
+                className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700"
+              >
+                {error}
+              </p>
+            )}
+            <button
+              disabled={busy}
+              className="w-full rounded-full bg-emerald-900 py-4 text-sm font-bold text-white transition hover:bg-emerald-950 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {busy
+                ? (mode === "signin" ? "Signing in…" : "Creating account…")
+                : <>{mode === "signin" ? "Continue" : "Create Account"} <span aria-hidden="true" className="ml-2 text-mint">↗</span></>}
+            </button>
+          </form>
+        </div>
+      </section>
+    </main>
+  );
 }

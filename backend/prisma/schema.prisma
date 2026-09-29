@@ -45,6 +45,7 @@ model User {
   email        String        @unique
   passwordHash String
   role         UserRole
+  balancePaisa Int           @default(0)
   vehicle      Vehicle?
   rideRequests RideRequest[]
   rideHistory  RideStatusHistory[] @relation("ChangedBy")

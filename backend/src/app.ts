@@ -9,12 +9,36 @@ import { apiRouter } from './routes/api.routes';
 import { HttpError } from './services/pool.service';
 
 export const app = express();
-app.use(cors({ origin: process.env.FRONTEND_ORIGIN?.split(',') ?? true }));
+const configuredFrontendOrigins = [process.env.FRONTEND_URL, process.env.FRONTEND_ORIGIN]
+  .filter((value): value is string => Boolean(value))
+  .flatMap((value) => value.split(','))
+  .map((value) => {
+    try {
+      return new URL(value.trim()).origin;
+    } catch {
+      return '';
+    }
+  })
+  .filter(Boolean);
+const vercelOrigin = /^https:\/\/(?:[a-z0-9-]+\.)*vercel\.app$/i;
+
+app.use(cors({
+  origin: (origin, callback) => {
+    const allowed = !origin
+      || origin === 'http://localhost:3000'
+      || configuredFrontendOrigins.includes(origin)
+      || vercelOrigin.test(origin);
+    callback(null, allowed);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+}));
 app.use(express.json());
 app.get('/health', async (_req, res) => {
   await prisma.$queryRaw`SELECT 1`;
   res.json({ status: 'ok', service: 'dhaka-tesla-pool-api', database: 'connected' });
 });
+app.use('/api/v1/auth', authRouter);
 app.use('/auth', authRouter);
 app.use('/', apiRouter);
 

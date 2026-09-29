@@ -12,13 +12,16 @@ const areas = [
 ];
 
 async function main() {
+  const seedPassword = process.env.SEED_PASSWORD ?? (process.env.NODE_ENV === 'production' ? '' : 'tesla2026');
+  if (!seedPassword) throw new Error('Set SEED_PASSWORD before seeding production accounts.');
+
   const seededAreas = new Map<string, string>();
   for (const area of areas) {
     const saved = await prisma.area.upsert({ where: { name: area.name }, update: area, create: area });
     seededAreas.set(area.name, saved.id);
   }
 
-  const passwordHash = await bcrypt.hash('tesla2026', 10);
+  const passwordHash = await bcrypt.hash(seedPassword, 10);
   const actors = [
     { name: 'Jashim', email: 'driver@teslapool.demo', role: 'DRIVER' as const },
     { name: 'Nusrat', email: 'passenger1@teslapool.demo', role: 'PASSENGER' as const },
@@ -80,7 +83,7 @@ async function main() {
       }
     });
   }
-  console.log('Seeded Dhaka Tesla Pool demo actors, areas, Bullet, and sample rides. Password: tesla2026');
+  console.log('Seeded Dhaka Tesla Pool actors, areas, Bullet, and sample rides.');
 }
 
 main().finally(() => prisma.$disconnect());

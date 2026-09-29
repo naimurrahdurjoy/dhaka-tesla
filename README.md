@@ -118,6 +118,24 @@ Without Docker, start PostgreSQL and set `DATABASE_URL` and `JWT_SECRET`, then f
 
 Run backend integration tests with PostgreSQL available and `DATABASE_URL` set: from `backend/`, run `npm test`. Tests cover the three-seat limit, invalid transitions, Nusrat/Rafiq fares, and simultaneous claims for the last seat. Tests create namespaced test fixtures and do not truncate the demo database.
 
+### Vercel CORS and Render seeding
+
+The API accepts browser requests from `http://localhost:3000`, HTTPS `*.vercel.app` deployments, and exact origins configured in `FRONTEND_URL` (comma-separated origins are supported). Credentialed requests are enabled. Configure `FRONTEND_URL` on the backend deployment, for example `https://your-app.vercel.app`; do not use `*` with credentials.
+
+To seed a Render PostgreSQL database from PowerShell, use Render's **External Database URL** from a trusted terminal. In production, set a strong `SEED_PASSWORD`; the seed script refuses to create or reset the four actor accounts with a known development password. Run from the repository root:
+
+```powershell
+Set-Location .\backend
+$env:DATABASE_URL = Read-Host 'Paste Render External Database URL'
+$env:NODE_ENV = 'production'
+$env:SEED_PASSWORD = Read-Host 'Enter the password for seeded accounts'
+npx prisma generate
+npx prisma db seed
+Remove-Item Env:DATABASE_URL, Env:NODE_ENV, Env:SEED_PASSWORD
+```
+
+The seed command is idempotent for its actors, vehicle, areas, and sample rides. Treat seeded production actor accounts as operational accounts: distribute their password securely and rotate it after the initial seed if needed.
+
 ## Security and MVP boundaries
 
 This is a local MVP, not production-hardened. Replace the development JWT secret, use TLS, rate-limit login, add operational logging/monitoring, and review payment settlement before launch. `TeslaPay` is represented as a pending payment record; no real payment provider is integrated. Matching is driver-accepted in this release; route optimization and maps are intentionally out of scope.

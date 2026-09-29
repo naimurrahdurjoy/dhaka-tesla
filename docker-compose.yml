@@ -25,7 +25,7 @@ services:
       PORT: 4000
       DATABASE_URL: postgresql://${POSTGRES_USER:-tesla}:${POSTGRES_PASSWORD:-tesla_dev_password}@postgres:5432/${POSTGRES_DB:-tesla_pool}?schema=public
       JWT_SECRET: ${JWT_SECRET:-local-only-jwt-secret-change-before-deploy}
-      FRONTEND_ORIGIN: http://localhost:3000
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
     ports:
       - "${BACKEND_PORT:-4000}:4000"
     depends_on:
