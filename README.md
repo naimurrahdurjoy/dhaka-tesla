@@ -4,7 +4,7 @@ Shared electric rides for Banani rush hour. The MVP pairs passengers in Jashim�
 
 # 🛺 Dhaka Tesla
 
-| 🎥 Demo Video | 🌐 Live Frontend | ⚙️ Live Backend |
+| 🎥 Watch on Youtube | 🌐 Live Frontend | ⚙️ Live Backend |
 | :--- | :--- | :--- |
 | [**Watch Walkthrough (6 Min)**](https://youtu.be/Hniyfs-UwK8?si=Ma-GkwRW4c4TfI5b) | [dhaka-tesla-ocak.vercel.app](https://dhaka-tesla-nu.vercel.app/login) | [dhaka-tesla.onrender.com](https://dhaka-tesla-j25p.onrender.com) |
 
