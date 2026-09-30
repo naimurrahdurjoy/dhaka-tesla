@@ -1,8 +1,6 @@
-# Dhaka Tesla
+# 🛺 Dhaka Tesla
 
 Shared electric rides for Banani rush hour. The MVP pairs passengers in Jashim’s three-seat electric 3-wheeler, the **Bullet**, with a live ride lifecycle, fare estimates, and seat-safe pooling.
-
-# 🛺 Dhaka Tesla
 
 | 🎥 Watch on Youtube | 🌐 Live Frontend | ⚙️ Live Backend |
 | :--- | :--- | :--- |
