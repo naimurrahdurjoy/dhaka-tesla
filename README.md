@@ -2,9 +2,9 @@
 
 Shared electric rides for Banani rush hour. The MVP pairs passengers in Jashim’s three-seat electric 3-wheeler, the **Bullet**, with a live ride lifecycle, fare estimates, and seat-safe pooling.
 
-| 🎥 Watch on Youtube | 🌐 Live Frontend | ⚙️ Live Backend |
+| 🎥 Project Walkthrough Video | 🌐 Live Frontend | ⚙️ Live Backend |
 | :--- | :--- | :--- |
-| [**Watch Walkthrough (6 Min)**](https://youtu.be/Hniyfs-UwK8?si=Ma-GkwRW4c4TfI5b) | [dhaka-tesla-ocak.vercel.app](https://dhaka-tesla-nu.vercel.app/login) | [dhaka-tesla.onrender.com](https://dhaka-tesla-j25p.onrender.com) |
+| [**Watch on Youtube**](https://youtu.be/Hniyfs-UwK8?si=Ma-GkwRW4c4TfI5b) | [dhaka-tesla-ocak.vercel.app](https://dhaka-tesla-nu.vercel.app/login) | [dhaka-tesla.onrender.com](https://dhaka-tesla-j25p.onrender.com) |
 
 ---
 
