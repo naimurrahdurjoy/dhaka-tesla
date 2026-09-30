@@ -83,7 +83,7 @@ async function main() {
       }
     });
   }
-  console.log('Seeded Dhaka Tesla Pool actors, areas, Bullet, and sample rides.');
+  console.log('Seeded Dhaka Tesla actors, areas, Bullet, and sample rides.');
 }
 
 main().finally(() => prisma.$disconnect());

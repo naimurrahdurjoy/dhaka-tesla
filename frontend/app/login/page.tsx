@@ -64,7 +64,7 @@ export default function LoginPage() {
           <span className="grid h-10 w-10 place-items-center rounded-xl bg-mint text-xl text-forest">
             T
           </span>
-          TESLAPOOL
+          DHAKA TESLA
         </Link>
         <div className="relative z-10 mt-8 max-w-xl lg:mt-0 lg:pb-12">
           <p className="mb-4 text-xs font-bold uppercase tracking-[.2em] text-mint">
@@ -96,7 +96,7 @@ export default function LoginPage() {
             href="/"
             className="mb-10 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 lg:hidden"
           >
-            ← Dhaka Tesla Pool
+            ← Dhaka Tesla
           </Link>
           <div className="grid grid-cols-2 rounded-full bg-white p-1" role="tablist" aria-label="Authentication mode">
             <button
@@ -119,7 +119,7 @@ export default function LoginPage() {
             </button>
           </div>
           <h2 className="mt-3 text-4xl font-semibold tracking-[-.04em]">
-            {mode === "signin" ? "Sign in to Tesla Pool" : "Create your account"}
+            {mode === "signin" ? "Sign in to Dhaka Tesla" : "Create your account"}
           </h2>
           <p className="mt-3 text-sm text-slate-500">
             {mode === "signin" ? "Enter your account details to continue." : "Join the ride with a secure account."}

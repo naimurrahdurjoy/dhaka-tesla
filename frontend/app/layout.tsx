@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Dhaka Tesla Pool — Share the ride, skip the rush',
+  title: 'Dhaka Tesla — Shared electric rides',
   description: 'Electric shared rides across Banani and Dhaka.'
 };
 

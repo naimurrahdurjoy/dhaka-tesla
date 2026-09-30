@@ -61,7 +61,7 @@ afterAll(async () => {
   await prisma.$disconnect();
 });
 
-describe('Dhaka Tesla Pool integration', () => {
+describe('Dhaka Tesla integration', () => {
   test('calculates deterministic pooled fares for Nusrat and Rafiq', async () => {
     expect(calculateFarePaisa('Banani', 'Mohakhali')).toBe(9600);
     expect(calculateFarePaisa('Banani', 'Gulshan 1')).toBe(7520);
@@ -87,6 +87,25 @@ describe('Dhaka Tesla Pool integration', () => {
     const response = await request(app).post(`/rides/${completedRide.id}/start`).set('Authorization', `Bearer ${driverToken}`);
     expect(response.status).toBe(409);
     expect(response.body.error.code).toBe('INVALID_STATE_TRANSITION');
+  });
+
+  test('reports completed ride earnings for the driver vehicle only', async () => {
+    const before = await request(app).get('/driver/dashboard').set('Authorization', `Bearer ${driverToken}`);
+    expect(before.status).toBe(200);
+    const poolId = await fixturePool();
+    const completedRide = await fixtureRide(0, 1, RideStatus.COMPLETED);
+    const activeRide = await fixtureRide(1, 1, RideStatus.MATCHED);
+    await prisma.poolMembership.createMany({ data: [
+      { poolId, rideId: completedRide.id, seats: 1, farePaisa: 9600 },
+      { poolId, rideId: activeRide.id, seats: 1, farePaisa: 7520 }
+    ] });
+    const otherDriver = await prisma.user.create({ data: { name: 'Other Driver', email: `other-driver-${suffix}@example.test`, passwordHash: 'test-hash', role: 'DRIVER' } });
+    const otherVehicle = await prisma.vehicle.create({ data: { driverId: otherDriver.id, name: 'Other vehicle', capacity: 3 } });
+    const otherPool = await prisma.pool.create({ data: { vehicleId: otherVehicle.id } });
+    const otherCompletedRide = await fixtureRide(2, 1, RideStatus.COMPLETED);
+    await prisma.poolMembership.create({ data: { poolId: otherPool.id, rideId: otherCompletedRide.id, seats: 1, farePaisa: 12000 } });
+    const after = await request(app).get('/driver/dashboard').set('Authorization', `Bearer ${driverToken}`);
+    expect(after.body.totalEarningsPaisa).toBe(before.body.totalEarningsPaisa + 9600);
   });
 
   test('serializes concurrent attempts for the final Bullet seat', async () => {

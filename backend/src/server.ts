@@ -1,4 +1,4 @@
 import { app } from './app';
 
 const port = Number(process.env.PORT ?? 4000);
-app.listen(port, '0.0.0.0', () => console.log(`Dhaka Tesla Pool API listening on ${port}`));
+app.listen(port, '0.0.0.0', () => console.log(`Dhaka Tesla API listening on ${port}`));

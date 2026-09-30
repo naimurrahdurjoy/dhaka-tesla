@@ -122,7 +122,10 @@ for (const [action, state] of lifecycleEndpoints) {
 apiRouter.get('/driver/dashboard', driverOnly, async (req, res) => {
   const vehicle = await prisma.vehicle.findUnique({ where: { driverId: req.user!.id } });
   if (!vehicle) throw new HttpError(404, 'VEHICLE_NOT_FOUND', 'No vehicle is assigned to this driver.');
-  const pools = await prisma.pool.findMany({ where: { vehicleId: vehicle.id, status: { in: ['OPEN', 'IN_PROGRESS'] } }, include: { members: { include: { ride: { include: { passenger: { select: { name: true } }, pickupArea: true, dropoffArea: true } } } } } });
+  const [pools, earnings] = await Promise.all([
+    prisma.pool.findMany({ where: { vehicleId: vehicle.id, status: { in: ['OPEN', 'IN_PROGRESS'] } }, include: { members: { include: { ride: { include: { passenger: { select: { name: true } }, pickupArea: true, dropoffArea: true } } } } } }),
+    prisma.poolMembership.aggregate({ where: { pool: { vehicleId: vehicle.id }, ride: { status: RideStatus.COMPLETED } }, _sum: { farePaisa: true } })
+  ]);
   const requests = await prisma.rideRequest.findMany({ where: { status: RideStatus.REQUESTED }, include: { passenger: { select: { name: true } }, pickupArea: true, dropoffArea: true }, orderBy: { createdAt: 'asc' } });
-  res.json({ vehicle, pools: pools.map((pool) => ({ ...pool, occupiedSeats: pool.members.reduce((total, item) => total + item.seats, 0) })), requests });
+  res.json({ vehicle, totalEarningsPaisa: earnings._sum.farePaisa ?? 0, pools: pools.map((pool) => ({ ...pool, occupiedSeats: pool.members.reduce((total, item) => total + item.seats, 0) })), requests });
 });

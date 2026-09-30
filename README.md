@@ -1,4 +1,4 @@
-# Dhaka Tesla Pool MVP
+# Dhaka Tesla
 
 Shared electric rides for Banani rush hour. The MVP pairs passengers in Jashim’s three-seat electric 3-wheeler, the **Bullet**, with a live ride lifecycle, fare estimates, and seat-safe pooling.
 
@@ -44,6 +44,42 @@ flowchart LR
   PE --> PR
 ```
 
+## Visual Scenario Overview
+
+Illustrative seat allocation: after Nusrat and Rafiq take one seat each, Shirin's two-seat request cannot fit in the remaining seat. The current seed keeps Shirin's request waiting for driver action.
+
+```text
+🛺 Visual Scenario Overview
+            BANANI ROAD 11 (PICKUP ZONE)
+  ┌─────────────────────────────────────────────────────────────────┐
+  │                                                                 │
+  │   👤 Nusrat               👤 Rafiq              👤 Shirin        │
+  │   (Wants 1 seat)          (Wants 1 seat)        (Wants 2 seats) │
+  └───────┬───────────────────────┬─────────────────────┬───────────┘
+      │                       │                     │
+      │ Request 1             │ Request 2           │ Request 3
+      ▼                       ▼                     ▼
+┌───────────────────────────────────────────────────────────────────┐
+│                        BACKEND POOL ENGINE                        │
+│                                                                   │
+│  • Matches configured routes when the driver accepts              │
+│  • Calculates the pooled fare discount in paisa                    │
+│  • Enforces a SQL row-level lock on Bullet's 3-seat capacity       │
+└─────────────────────────────────┬─────────────────────────────────┘
+                  │
+                  ▼
+           JASHIM'S TESLA ("BULLET") 🛺⚡
+             [ 💺 Seat 1 | 💺 Seat 2 | 💺 Seat 3 ]
+                  │
+   ┌────────────────────────────┼────────────────────────────┐
+   │                            │                            │
+   ▼                            ▼                            ▼
+✅ APPROVED                  ✅ APPROVED                  ❌ REJECTED
+Nusrat assigned             Rafiq assigned               Shirin blocked
+(1 seat taken)              (2 seats taken)              (Requires 2 seats;
+                              only 1 left!)
+```
+
 ## Data model (ERD)
 
 ```mermaid
@@ -86,6 +122,8 @@ Only configured Banani routes are fare-enabled in this MVP. Unsupported routes a
 ## Concurrency and ride lifecycle
 
 `POST /pools/:id/join` opens a Prisma interactive transaction and locks its pool row with PostgreSQL `SELECT ... FOR UPDATE`. It then reads the occupied-seat aggregate while holding that lock and checks `occupiedSeats + requestedSeats <= vehicle.capacity` before inserting membership and changing the ride to `MATCHED`. Concurrent claims for the last available seats serialize on the same row; one succeeds and the next receives HTTP 409 with `POOL_CAPACITY_EXCEEDED`. The test suite exercises two concurrent claims for a single remaining seat against PostgreSQL.
+
+The driver dashboard reports total completed ride earnings from pool membership fares, in paisa; the UI converts this total to Taka for display.
 
 Allowed ride state transitions are enforced centrally:
 

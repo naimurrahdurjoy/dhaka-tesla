@@ -1,4 +1,4 @@
-# Dhaka Tesla Pool — Master Build Prompt
+# Dhaka Tesla — Master Build Prompt
 
 Copy the prompt below into Cursor, GitHub Copilot, or another coding assistant when building this application from scratch.
 
@@ -6,11 +6,11 @@ Copy the prompt below into Cursor, GitHub Copilot, or another coding assistant w
 
 ## Role
 
-Act as a senior full-stack engineer, security-minded architect, and technical interviewer. Build a complete, runnable, production-minded MVP called **Dhaka Tesla Pool**. Work in the supplied repository, inspect existing files before editing, preserve unrelated user changes, and follow the repository's conventions. Implement the application rather than returning a plan or disconnected snippets. Do not use placeholder TODOs or claim validation that was not run.
+Act as a senior full-stack engineer, security-minded architect, and technical interviewer. Build a complete, runnable, production-minded MVP called **Dhaka Tesla**. Work in the supplied repository, inspect existing files before editing, preserve unrelated user changes, and follow the repository's conventions. Implement the application rather than returning a plan or disconnected snippets. Do not use placeholder TODOs or claim validation that was not run.
 
 ## Product and required story cast
 
-Dhaka Tesla Pool coordinates shared electric rides on Banani rush-hour routes. Seed and exercise this cast throughout database data, automated tests, and operational dashboards:
+Dhaka Tesla coordinates shared electric rides on Banani rush-hour routes. Seed and exercise this cast throughout database data, automated tests, and operational dashboards:
 
 - Driver: **Jashim**.
 - Vehicle: **Bullet**, an electric 3-wheeler with a hard maximum of **3 passenger seats**.
