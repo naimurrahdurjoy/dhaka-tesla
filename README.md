@@ -2,6 +2,14 @@
 
 Shared electric rides for Banani rush hour. The MVP pairs passengers in Jashim’s three-seat electric 3-wheeler, the **Bullet**, with a live ride lifecycle, fare estimates, and seat-safe pooling.
 
+# 🛺 Dhaka Tesla
+
+| 🎥 Demo Video | 🌐 Live Frontend | ⚙️ Live Backend |
+| :--- | :--- | :--- |
+| [**Watch Walkthrough (6 Min)**](https://youtu.be/Hniyfs-UwK8?si=Ma-GkwRW4c4TfI5b) | [dhaka-tesla-ocak.vercel.app](https://dhaka-tesla-nu.vercel.app/login) | [dhaka-tesla.onrender.com](https://dhaka-tesla-j25p.onrender.com) |
+
+---
+
 ## Quick start
 
 Requirements: Docker Desktop with Compose v2. From the repository root:
