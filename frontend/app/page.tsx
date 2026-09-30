@@ -27,7 +27,6 @@ export default function Home() {
               <div className="flex items-center justify-between border-t border-white/15 pt-5"><div><p className="text-sm text-white/60">Meet your driver</p><p className="mt-1 font-semibold">Jashim <span className="ml-1 text-mint">· Bullet</span></p></div><div className="flex -space-x-2"><span className="grid h-9 w-9 place-items-center rounded-full border-2 border-forest bg-[#f7c8a7] text-xs font-bold text-ink">N</span><span className="grid h-9 w-9 place-items-center rounded-full border-2 border-forest bg-[#b8d8d0] text-xs font-bold text-ink">R</span><span className="grid h-9 w-9 place-items-center rounded-full border-2 border-forest bg-mint text-xs font-bold text-ink">+1</span></div></div>
             </div>
           </div>
-          <div className="mt-4 flex justify-start sm:justify-end"><div className="rounded-2xl bg-white px-5 py-4 shadow-card"><p className="text-xs text-slate-500">Example pooled fare</p><p className="mt-1 text-xl font-bold">৳96 <span className="text-sm font-medium text-slate-400">/ seat</span></p></div></div>
         </div>
       </section>
       <footer className="mx-auto max-w-7xl px-6 pb-7 text-xs text-slate-400">A better way across Banani. Built for people, powered by electric.</footer>
