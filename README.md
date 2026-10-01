@@ -178,12 +178,3 @@ The MVP’s single-pool-per-vehicle and direct polling pattern is intentionally 
 
 Promote changes `master` → `pre-release` → `release/v1.0.0`; merge approved fixes back down to prevent branch drift.
 
-## Six-minute Loom walkthrough outline
-
-- **0:00–0:40 — Product:** explain the Banani rush-hour use case, Bullet’s fixed three-seat capacity, and the four demo actors.
-- **0:40–1:30 — Passenger:** sign in as Nusrat, show the Banani → Mohakhali request, integer-backed fare, pool card, and status tracker.
-- **1:30–2:15 — Driver:** switch to Jashim, show online state, 2/3 seats, passenger roster, Shirin’s waiting request, and accept it if running against a fresh seed.
-- **2:15–3:00 — Lifecycle:** demonstrate arrived → started → completed and fare/payment status creation.
-- **3:00–4:15 — Architecture:** review Prisma relations, API boundaries, Docker health checks, and demo bootstrap.
-- **4:15–5:15 — Concurrency:** explain the transaction’s `FOR UPDATE` lock and show the test where two claims compete for one remaining seat (one success, one 409).
-- **5:15–6:00 — Roadmap:** discuss production security, real TeslaPay integration, live updates, and zone-based scaling.
